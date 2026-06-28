@@ -15,17 +15,32 @@ export const validateRequest = (schema: z.AnyZodObject) => {
       });
 
       // Replace req objects with sanitized and parsed versions
-      req.body = parsed.body;
-      req.query = parsed.query as any;
-      req.params = parsed.params as any;
-
-      next();
-    } catch (error) {
-      if (error instanceof ZodError) {
+      if (parsed.body !== undefined) {
+        req.body = parsed.body;
+      }
+      if (parsed.query !== undefined) {
+        Object.defineProperty(req, "query", {
+          value: parsed.query,
+          configurable: true,
+          enumerable: true,
+          writable: true,
+        });
+      }
+      if (parsed.params !== undefined) {
+        Object.defineProperty(req, "params", {
+          value: parsed.params,
+          configurable: true,
+          enumerable: true,
+          writable: true,
+        });
+      }
+    } catch (error: any) {
+      console.error("Validation middleware error:", error);
+      if (error instanceof ZodError || (error && error.name === "ZodError")) {
         res.status(400).json({
           success: false,
           message: "Validation failed",
-          errors: error.errors.map((err) => ({
+          errors: error.errors.map((err: any) => ({
             field: err.path.slice(1).join("."), // e.g. body.email -> email
             message: err.message,
           })),
@@ -36,7 +51,10 @@ export const validateRequest = (schema: z.AnyZodObject) => {
         success: false,
         message: "Internal server error during validation",
       });
+      return;
     }
+
+    next();
   };
 };
 

@@ -23,6 +23,7 @@ router.post(
 router.post("/refresh", authRateLimiter, validateRequest(tokenSchema), controller.refresh);
 router.post("/logout-all", authenticate, controller.logoutAll);
 router.get("/profile",  profileRateLimiter, authenticate, controller.profile);
+router.get("/profiles", authenticate, controller.profiles);
 
 
 export default router;

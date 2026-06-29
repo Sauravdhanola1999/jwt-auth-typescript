@@ -99,7 +99,24 @@ class Controller {
         message: error.message,
       });
     }
+  };
+
+  profiles = async (req:Request, res: Response): Promise<void> => {
+    try {
+      const data = await services.profiles();
+        res.status(200).json({
+        success: true,
+        message: "Data fetched Successfully",
+        data: data,
+      });
+    } catch (error: any) {
+        res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
   }
+
 }
 
 export default new Controller();

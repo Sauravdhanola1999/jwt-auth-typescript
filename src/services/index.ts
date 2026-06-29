@@ -11,6 +11,7 @@ import {
 } from "../utils/jwt.js";
 import Refershtoken from "../models/Refershtoken.js";
 import crypto from "crypto";
+import redisClient from "../config/redis.js";
 
 interface RegisterInput {
   name: string;
@@ -204,6 +205,26 @@ class Servervices {
       name: user.name,
       email: user.email,
     };
+  };
+
+  profiles = async () => {
+    const cachedUsers = await redisClient.get("users");
+
+    if (cachedUsers) {
+      return JSON.parse(cachedUsers);
+    }
+
+    const users = await User.find();
+    const mappedUsers = users.map((user) => ({
+      name: user.name,
+      email: user.email,
+    }));
+
+    await redisClient.set("users", JSON.stringify(mappedUsers), {
+      EX: 300,
+    });
+
+    return mappedUsers;
   };
 }
 

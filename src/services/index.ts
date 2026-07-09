@@ -19,21 +19,20 @@ interface RegisterInput {
   password: string;
 }
 
-interface logginInput {
+interface LoginInput {
   email: string;
   password: string;
 }
 
-interface logoutInput {
+interface LogoutInput {
   refreshToken: string;
 }
 
-class Servervices {
-  // Register a new user
-  register = async ({ name, email, password }: RegisterInput) => {
-    const registerInput = await User.findOne({ email });
-    if (registerInput) {
-      throw new Error("Email Already Exists");
+export class Services {
+  public async register({ name, email, password }: RegisterInput) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new Error("Email already exists");
     }
 
     const hashedPassword = await hashPassword(password);
@@ -59,9 +58,9 @@ class Servervices {
     const refreshTokenHash = hashRefreshToken(refreshToken);
     await Refershtoken.create({
       userId: user._id,
-      refreshTokenHash: refreshTokenHash,
+      refreshTokenHash,
       deviceId: crypto.randomUUID(),
-      deviceName: "Unknwon Device",
+      deviceName: "Unknown Device",
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
@@ -74,10 +73,9 @@ class Servervices {
       accessToken,
       refreshToken,
     };
-  };
+  }
 
-  // Log in an existing user
-  login = async ({ email, password }: logginInput) => {
+  public async login({ email, password }: LoginInput) {
     const user = await User.findOne({ email });
     if (!user) {
       throw new Error("Invalid email or password");
@@ -101,56 +99,55 @@ class Servervices {
       role: user.role,
     });
 
-    const refershTokenhash = hashRefreshToken(refreshToken);
+    const refreshTokenHash = hashRefreshToken(refreshToken);
 
     await Refershtoken.create({
       userId: user._id,
-      refreshTokenHash: refershTokenhash,
+      refreshTokenHash,
       deviceId: crypto.randomUUID(),
       expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
+
     return {
       data: {
         id: user._id,
         name: user.name,
-        emal: user.email,
+        email: user.email,
       },
       accessToken,
       refreshToken,
     };
-  };
+  }
 
-  logout = async ({ refreshToken }: logoutInput) => {
+  public async logout({ refreshToken }: LogoutInput) {
     verifyRefreshToken(refreshToken);
 
     const refreshTokenHash = hashRefreshToken(refreshToken);
-
     const token = await Refershtoken.findOne({ refreshTokenHash });
 
     if (!token) {
       throw new Error("Invalid refresh token");
     }
+
     await Refershtoken.deleteOne({
       _id: token._id,
     });
 
     return {
-      message: "loggedOut Successfully",
+      message: "Logged out successfully",
     };
-  };
+  }
 
-  refresh = async ({ refreshToken }: logoutInput) => {
+  public async refresh({ refreshToken }: LogoutInput) {
     const payload = verifyRefreshToken(refreshToken);
     const refreshTokenHash = hashRefreshToken(refreshToken);
-    const existingToken = await Refershtoken.findOne({
-      refreshTokenHash,
-    });
+    const existingToken = await Refershtoken.findOne({ refreshTokenHash });
 
     if (!existingToken) {
       throw new Error("Invalid refresh token");
     }
-    const user = await User.findById(payload.userId);
 
+    const user = await User.findById(payload.userId);
     if (!user) {
       throw new Error("User not found");
     }
@@ -184,30 +181,29 @@ class Servervices {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
     };
-  };
+  }
 
-  logoutAll = async (userId: string) => {
-    const result = await Refershtoken.deleteMany({
-      userId,
-    });
+  public async logoutAll(userId: string) {
+    const result = await Refershtoken.deleteMany({ userId });
 
     return {
       deletedSessions: result.deletedCount,
     };
-  };
+  }
 
-  profile = async (currentUser: string) => {
+  public async profile(currentUser: string) {
     const user = await User.findById(currentUser);
     if (!user) {
       throw new Error("User not found");
     }
+
     return {
       name: user.name,
       email: user.email,
     };
-  };
+  }
 
-  profiles = async () => {
+  public async profiles() {
     const cachedUsers = await redisClient.get("users");
 
     if (cachedUsers) {
@@ -225,7 +221,6 @@ class Servervices {
     });
 
     return mappedUsers;
-  };
+  }
 }
 
-export default new Servervices();

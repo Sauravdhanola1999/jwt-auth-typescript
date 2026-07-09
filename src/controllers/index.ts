@@ -1,105 +1,127 @@
 import { Request, Response } from "express";
-import services from "../services/index.js";
+import { Services } from "../services/index.js";
 
-class Controller {
-  // Handle user registration
-  register = async (req: Request, res: Response): Promise<void> => {
+export class Controller {
+  constructor(private readonly authService: Services) {}
+
+  public register = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await services.register(req.body);
+      const result = await this.authService.register(req.body);
       res.status(201).json({
         success: true,
-        message: "User Registered SuccessFully",
+        message: "User Registered Successfully",
         data: result,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
       res.status(400).json({
         success: false,
-        message: error.message,
+        message,
       });
     }
-  };
+  }
 
-  // Handle user login
-  login = async (req: Request, res: Response): Promise<void> => {
+  public login = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await services.login(req.body);
+      const result = await this.authService.login(req.body);
       res.status(200).json({
         success: true,
         message: "User logged in successfully",
         data: result,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
       res.status(400).json({
         success: false,
-        message: error.message,
+        message,
       });
     }
-  };
+  }
 
-  logout = async (req: Request, res: Response): Promise<void> => {
+  public logout = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await services.logout(req.body);
+      const result = await this.authService.logout(req.body);
       res.status(200).json({
         success: true,
-        result,
+        data: result,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
       res.status(401).json({
         success: false,
-        message: error.message,
+        message,
       });
     }
-  };
+  }
 
-  refresh = async (req: Request, res: Response): Promise<void> => {
+  public refresh = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await services.refresh(req.body);
+      const result = await this.authService.refresh(req.body);
       res.status(200).json({
         success: true,
-        message: "User logged in successfully",
+        message: "Token refreshed successfully",
         data: result,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
       res.status(400).json({
         success: false,
-        message: error.message,
+        message,
       });
     }
-  };
+  }
 
-  logoutAll = async (req: Request, res: Response): Promise<void> => {
+  public logoutAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const currentUser = req.user.userId;
-      const result = await services.logoutAll(currentUser);
+      const currentUser = req.user?.userId;
+      const result = await this.authService.logoutAll(currentUser);
       res.status(200).json({
         success: true,
-        message: "User logged in successfully",
+        message: "All sessions logged out",
         data: result,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
       res.status(400).json({
         success: false,
-        message: error.message,
+        message,
       });
     }
-  };
+  }
 
-  profile = async(req: Request, res: Response): Promise<void> => {
+  public profile = async (req: Request, res: Response): Promise<void> => {
     try {
-      const currentUser = req.user.userId;
-      const data = await services.profile(currentUser);
+      const currentUser = req.user?.userId;
+      const data = await this.authService.profile(currentUser);
       res.status(200).json({
         success: true,
-        message: "User logged in successfully",
-        data: data,
+        message: "User profile fetched successfully",
+        data,
       });
-    } catch (error: any) {
-            res.status(400).json({
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
+      res.status(400).json({
         success: false,
-        message: error.message,
+        message,
+      });
+    }
+  }
+
+  public profiles = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const data = await this.authService.profiles();
+      res.status(200).json({
+        success: true,
+        message: "Data fetched successfully",
+        data,
+      });
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Something went wrong";
+      res.status(400).json({
+        success: false,
+        message,
       });
     }
   }
 }
 
-export default new Controller();

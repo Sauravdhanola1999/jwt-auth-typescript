@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
-import { Services } from "../services/index.js";
+import { IAuthService, authService } from "../services/index.js";
 
 export class Controller {
-  constructor(private readonly authService: Services) {}
+  constructor(private readonly authServices: IAuthService) {}
 
   public register = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.authService.register(req.body);
+      const result = await this.authServices.register(req.body);
       res.status(201).json({
         success: true,
         message: "User Registered Successfully",
@@ -23,7 +23,7 @@ export class Controller {
 
   public login = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.authService.login(req.body);
+      const result = await this.authServices.login(req.body);
       res.status(200).json({
         success: true,
         message: "User logged in successfully",
@@ -40,7 +40,7 @@ export class Controller {
 
   public logout = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.authService.logout(req.body);
+      const result = await this.authServices.logout(req.body);
       res.status(200).json({
         success: true,
         data: result,
@@ -56,7 +56,7 @@ export class Controller {
 
   public refresh = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.authService.refresh(req.body);
+      const result = await this.authServices.refresh(req.body);
       res.status(200).json({
         success: true,
         message: "Token refreshed successfully",
@@ -74,7 +74,7 @@ export class Controller {
   public logoutAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const currentUser = req.user?.userId;
-      const result = await this.authService.logoutAll(currentUser);
+      const result = await this.authServices.logoutAll(currentUser);
       res.status(200).json({
         success: true,
         message: "All sessions logged out",
@@ -92,7 +92,7 @@ export class Controller {
   public profile = async (req: Request, res: Response): Promise<void> => {
     try {
       const currentUser = req.user?.userId;
-      const data = await this.authService.profile(currentUser);
+      const data = await this.authServices.profile(currentUser);
       res.status(200).json({
         success: true,
         message: "User profile fetched successfully",
@@ -109,7 +109,7 @@ export class Controller {
 
   public profiles = async (req: Request, res: Response): Promise<void> => {
     try {
-      const data = await this.authService.profiles();
+      const data = await this.authServices.profiles();
       res.status(200).json({
         success: true,
         message: "Data fetched successfully",
@@ -125,3 +125,4 @@ export class Controller {
   }
 }
 
+export const authController = new Controller(authService);

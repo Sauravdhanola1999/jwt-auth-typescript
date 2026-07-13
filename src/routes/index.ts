@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { Controller } from "../controllers/index.js";
-import { Services } from "../services/index.js";
+import { authController } from "../controllers/index.js";
 import { authenticate } from "../middleware/authenticate.js";
 import {
   validateRequest,
@@ -12,35 +11,33 @@ import { authRateLimiter } from "../rate-limiters/authRateLimiter.js";
 import { profileRateLimiter } from "../rate-limiters/profileRateLimiter.js";
 
 const router = Router();
-const authService = new Services();
-const controller = new Controller(authService);
 
 router.post(
   "/register",
   authRateLimiter,
   validateRequest(registerSchema),
-  controller.register
+  authController.register
 );
 router.post(
   "/login",
   authRateLimiter,
   validateRequest(loginSchema),
-  controller.login
+  authController.login
 );
 router.post(
   "/logout",
   authenticate,
   validateRequest(tokenSchema),
-  controller.logout
+  authController.logout
 );
 router.post(
   "/refresh",
   authRateLimiter,
   validateRequest(tokenSchema),
-  controller.refresh
+  authController.refresh
 );
-router.post("/logout-all", authenticate, controller.logoutAll);
-router.get("/profile", profileRateLimiter, authenticate, controller.profile);
-router.get("/profiles", authenticate, controller.profiles);
+router.post("/logout-all", authenticate, authController.logoutAll);
+router.get("/profile", profileRateLimiter, authenticate, authController.profile);
+router.get("/profiles", authenticate, authController.profiles);
 
 export default router;

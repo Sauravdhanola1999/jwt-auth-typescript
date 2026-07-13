@@ -13,22 +13,32 @@ import Refershtoken from "../models/Refershtoken.js";
 import crypto from "crypto";
 import redisClient from "../config/redis.js";
 
-interface RegisterInput {
+export interface RegisterInput {
   name: string;
   email: string;
   password: string;
 }
 
-interface LoginInput {
+export interface LoginInput {
   email: string;
   password: string;
 }
 
-interface LogoutInput {
+export interface LogoutInput {
   refreshToken: string;
 }
 
-export class Services {
+export interface IAuthService {
+  register(input: RegisterInput): Promise<any>;
+  login(input: LoginInput): Promise<any>;
+  logout(input: LogoutInput): Promise<any>;
+  refresh(input: LogoutInput): Promise<any>;
+  logoutAll(userId: string): Promise<any>;
+  profile(currentUser: string): Promise<any>;
+  profiles(): Promise<any>;
+}
+
+export class Services implements IAuthService {
   public async register({ name, email, password }: RegisterInput) {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -224,3 +234,4 @@ export class Services {
   }
 }
 
+export const authService = new Services();
